@@ -53,7 +53,7 @@ DIST_ERROR_OFFSETS = (-1,   0,    1,    2)
 _TIME_BUFFER = 0.20
 
 # Iterative deepening ceiling and minimum time to start a new depth
-_MAX_DEPTH   = 8
+_MAX_DEPTH   = 6
 _MIN_SECONDS = 0.05
 
 # Heuristic weights

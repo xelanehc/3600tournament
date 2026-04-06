@@ -92,6 +92,16 @@ def print_moves(player_as_turn, move, timer):
     print(f" in {timer:.3f} seconds")
 
 
+def print_search_result(player_as_turn, move, search_result):
+    player_label = "A" if player_as_turn else "B"
+    if move is None or move.move_type != MoveType.SEARCH:
+        print(f"{player_label} rat guess: no guess")
+    elif search_result:
+        print(f"{player_label} rat guess: correct")
+    else:
+        print(f"{player_label} rat guess: incorrect")
+
+
 def validate_submission(
     directory_a, player_a_name, limit_resources=False, use_gpu=False
 ):
@@ -451,6 +461,7 @@ def play_game(
 
         if not move is None and display_game:
             print_moves(not board.is_player_a_turn, move, timer)
+            print_search_result(not board.is_player_a_turn, move, search_result)
             time.sleep(delay)
 
         if not board.is_game_over():
@@ -475,6 +486,14 @@ def play_game(
 
     board.set_winner(winner, board.win_reason)
 
+    final_search_a = None
+    final_search_b = None
+    if move is not None and move.move_type == MoveType.SEARCH:
+        if player_label == "A":
+            final_search_a = (search_loc, search_result)
+        else:
+            final_search_b = (search_loc, search_result)
+
     if board.is_game_over():
         if display_game:
             print_board(
@@ -486,11 +505,11 @@ def play_game(
             print(f"{winner.name} wins by {board.get_win_reason().name}")
     
     if(message_a==""):
-        message_a = player_a_process.run_timed_commentary(3)
+        message_a = player_a_process.run_timed_commentary(3, final_search=final_search_a)
 
 
     if(message_b==""):
-        message_b = player_b_process.run_timed_commentary(3)
+        message_b = player_b_process.run_timed_commentary(3, final_search=final_search_b)
     print(f"Player A message: {message_a}")
     print(f"Player B message: {message_b}")
     terminate_game(player_a_process, player_b_process, queues, out_queue, stop_event)

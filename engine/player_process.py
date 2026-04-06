@@ -342,10 +342,13 @@ def run_player_process(
 
         elif func == "commentary":
             try:
+                final_search = player_queue.get()
                 if not limit_resources:
                     printer.set_turn("commentate")
 
                 try:
+                    if final_search is not None and hasattr(player, "_record_search_result"):
+                        player._record_search_result(*final_search)
                     message = player.commentate()
                 except:
                     print(traceback.format_exc())
@@ -462,9 +465,10 @@ class PlayerProcess:
         except:
             return None, -1, "Timeout"
         
-    def run_timed_commentary(self, timeout, extra_ret_time=0):
+    def run_timed_commentary(self, timeout, extra_ret_time=0, final_search=None):
 
         self.player_queue.put("commentary")
+        self.player_queue.put(final_search)
         try:
             message = self.return_queue.get(
                 block=True, timeout=timeout + extra_ret_time

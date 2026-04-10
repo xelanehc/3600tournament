@@ -103,9 +103,9 @@ def validate_submission(
     out_queue = None
 
     try:
-        play_time = 360
+        play_time = 240
         extra_ret_time = 5
-        init_timeout = 10
+        init_timeout = 30 
 
         main_q = Queue()
         player_a_q = Queue()
@@ -135,7 +135,7 @@ def validate_submission(
         )
         player_a_process.start()
 
-        ok = main_q.get(block=True, timeout=10)
+        ok = main_q.get(block=True, timeout=init_timeout)
         message = ""
 
         if not ok:
@@ -231,11 +231,11 @@ def play_game(
 
     play_time = 240
     extra_ret_time = 5
-    init_timeout = 10
+    init_timeout = 30
 
     if not limit_resources:
-        init_timeout = 20
-        play_time = 360
+        init_timeout = 30
+        play_time = 240
 
     # setup main thread queue for getting results
     main_q_a = Queue()
@@ -318,7 +318,7 @@ def play_game(
 
     try:
         player_a_process.start()
-        success_a = main_q_a.get(block=True, timeout=10)
+        success_a = main_q_a.get(block=True, timeout=init_timeout)
         player_a_process.pause_process_and_children()
     except Exception as e:
         message_a = traceback.format_exc()
@@ -326,7 +326,7 @@ def play_game(
 
     try:
         player_b_process.start()
-        success_b = main_q_b.get(block=True, timeout=10)
+        success_b = main_q_b.get(block=True, timeout=init_timeout)
         player_b_process.pause_process_and_children()
     except Exception as e:
         message_b = traceback.format_exc()
@@ -441,6 +441,13 @@ def play_game(
             else:
                 search_result = False
                 board.player_worker.decrement_points(RAT_PENALTY)
+
+            # Re-check winner after search points are applied. check_win() ran
+            # inside apply_move before search points were awarded, so if the game
+            # just ended by points the stored result may be stale.
+            if board.is_game_over() and board.win_reason == WinReason.POINTS:
+                board.winner = None
+                board.check_win()
 
         searches.append((search_loc, search_result))
 

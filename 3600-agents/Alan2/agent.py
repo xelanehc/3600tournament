@@ -73,10 +73,16 @@ class PlayerAgent:
 
         search_loc, search_ev = (None, 0.0)
         if self.belief is not None:
-            search_loc, search_ev = self.belief.best_search_ev()
+            search_loc, raw_search_ev, search_confidence = self.belief.best_search_ev()
             turns_played = MAX_TURNS_PER_PLAYER - turns_left
+            # Apply a growing penalty to rat searching later in the game
+            # This reduces the attractiveness of searching when carpet opportunities are more valuable
+            late_game_penalty = turns_played * 0.05  # Penalty grows by 0.1 per turn played
+            search_ev = max(0.0, raw_search_ev - late_game_penalty)
+            # Only consider searching if we have reasonable confidence (>30%) that the rat is there
+            min_confidence = 0.5
             patience = max(0.0, 2.0 - turns_played * (2.0 / 30.0))
-            if search_ev >= patience:
+            if search_ev >= patience and search_confidence > min_confidence:
                 return Move.search(search_loc)
 
         # Use more time in the middle of the game, and consume the remaining

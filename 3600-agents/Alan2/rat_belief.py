@@ -73,14 +73,17 @@ class RatBelief:
             self.b[_idx(loc)] = 0.0
             self._norm()
 
-    def best_search_ev(self) -> Tuple[Tuple[int, int], float]:
+    def best_search_ev(self) -> Tuple[Tuple[int, int], float, float]:
+
         i = int(np.argmax(self.b))
         p = float(self.b[i])
-        return _loc(i), p * RAT_BONUS - (1.0 - p) * RAT_PENALTY
+        ev = p * RAT_BONUS - (1.0 - p) * RAT_PENALTY
+        return _loc(i), ev, p
 
     def rat_ev(self) -> float:
-        _, ev = self.best_search_ev()
+        _, ev, _ = self.best_search_ev()
         return ev
+
 
     def top_n(self, n: int = 3):
         idx = np.argsort(self.b)[-n:][::-1]

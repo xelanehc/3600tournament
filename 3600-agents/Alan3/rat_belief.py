@@ -45,7 +45,14 @@ _DIST_LK: np.ndarray = _build_dist_likelihood_table()
 class RatBelief:
     def __init__(self, T):
         self.T = np.array(T, dtype=np.float64)
+        # Initialize belief as stationary distribution from 1000 steps of T starting from uniform
         self.b = np.full(N, 1.0 / N, dtype=np.float64)
+        for _ in range(1000):
+            self.b = self.b @ self.T
+            # Normalize to handle numerical errors
+            s = self.b.sum()
+            if s > 0:
+                self.b /= s
         self._noise_cache: Dict[tuple, np.ndarray] = {}
 
     def predict(self):
